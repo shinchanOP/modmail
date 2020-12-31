@@ -97,13 +97,7 @@ class Modmail(commands.Cog):
             color=self.bot.main_color,
         )
 
-        embed.add_field(
-            name="Thanks for using our bot!",
-            value="If you like what you see, consider giving the "
-            "[repo a star](https://github.com/kyb3r/modmail) :star: and if you are "
-            "feeling extra generous, buy us coffee on [Patreon](https://patreon.com/kyber) :heart:!",
-        )
-
+       
         embed.set_footer(text=f'Type "{self.bot.prefix}help" for a complete list of commands.')
         await log_channel.send(embed=embed)
 
@@ -582,24 +576,7 @@ class Modmail(commands.Cog):
             )
         return await ctx.send(embed=embed)
 
-    @commands.command()
-    @checks.has_permissions(PermissionLevel.SUPPORTER)
-    @checks.thread_only()
-    async def nsfw(self, ctx):
-        """Flags a Modmail thread as NSFW (not safe for work)."""
-        await ctx.channel.edit(nsfw=True)
-        sent_emoji, _ = await self.bot.retrieve_emoji()
-        await self.bot.add_reaction(ctx.message, sent_emoji)
-
-    @commands.command()
-    @checks.has_permissions(PermissionLevel.SUPPORTER)
-    @checks.thread_only()
-    async def sfw(self, ctx):
-        """Flags a Modmail thread as SFW (safe for work)."""
-        await ctx.channel.edit(nsfw=False)
-        sent_emoji, _ = await self.bot.retrieve_emoji()
-        await self.bot.add_reaction(ctx.message, sent_emoji)
-
+   
     @commands.command()
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @checks.thread_only()
@@ -894,20 +871,7 @@ class Modmail(commands.Cog):
             msg = await ctx.thread.note(ctx.message)
             await msg.pin()
 
-    @note.command(name="persistent", aliases=["persist"])
-    @checks.has_permissions(PermissionLevel.SUPPORTER)
-    @checks.thread_only()
-    async def note_persistent(self, ctx, *, msg: str = ""):
-        """
-        Take a persistent note about the current user.
-        """
-        ctx.message.content = msg
-        async with ctx.typing():
-            msg = await ctx.thread.note(ctx.message, persistent=True)
-            await msg.pin()
-        await self.bot.api.create_note(
-            recipient=ctx.thread.recipient, message=ctx.message, message_id=msg.id
-        )
+    
 
     @commands.command()
     @checks.has_permissions(PermissionLevel.SUPPORTER)
@@ -1086,61 +1050,7 @@ class Modmail(commands.Cog):
 
         await session.run()
 
-    @blocked.command(name="whitelist")
-    @checks.has_permissions(PermissionLevel.MODERATOR)
-    @trigger_typing
-    async def blocked_whitelist(self, ctx, *, user: User = None):
-        """
-        Whitelist or un-whitelist a user from getting blocked.
-
-        Useful for preventing users from getting blocked by account_age/guild_age restrictions.
-        """
-        if user is None:
-            thread = ctx.thread
-            if thread:
-                user = thread.recipient
-            else:
-                return await ctx.send_help(ctx.command)
-
-        mention = getattr(user, "mention", f"`{user.id}`")
-        msg = ""
-
-        if str(user.id) in self.bot.blocked_whitelisted_users:
-            embed = discord.Embed(
-                title="Success",
-                description=f"{mention} is no longer whitelisted.",
-                color=self.bot.main_color,
-            )
-            self.bot.blocked_whitelisted_users.remove(str(user.id))
-            return await ctx.send(embed=embed)
-
-        self.bot.blocked_whitelisted_users.append(str(user.id))
-
-        if str(user.id) in self.bot.blocked_users:
-            msg = self.bot.blocked_users.get(str(user.id)) or ""
-            self.bot.blocked_users.pop(str(user.id))
-
-        await self.bot.config.update()
-
-        if msg.startswith("System Message: "):
-            # If the user is blocked internally (for example: below minimum account age)
-            # Show an extended message stating the original internal message
-            reason = msg[16:].strip().rstrip(".")
-            embed = discord.Embed(
-                title="Success",
-                description=f"{mention} was previously blocked internally for "
-                f'"{reason}". {mention} is now whitelisted.',
-                color=self.bot.main_color,
-            )
-        else:
-            embed = discord.Embed(
-                title="Success",
-                color=self.bot.main_color,
-                description=f"{mention} is now whitelisted.",
-            )
-
-        return await ctx.send(embed=embed)
-
+   
     @commands.command(usage="[user] [duration] [reason]")
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @trigger_typing
@@ -1468,25 +1378,7 @@ class Modmail(commands.Cog):
         """
         await ctx.send_help(ctx.command)
 
-    @disable.command(name="new")
-    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
-    async def disable_new(self, ctx):
-        """
-        Stop accepting new Modmail threads.
-
-        No new threads can be created through DM.
-        """
-        embed = discord.Embed(
-            title="Success",
-            description="Modmail will not create any new threads.",
-            color=self.bot.main_color,
-        )
-        if self.bot.config["dm_disabled"] < DMDisabled.NEW_THREADS:
-            self.bot.config["dm_disabled"] = DMDisabled.NEW_THREADS
-            await self.bot.config.update()
-
-        return await ctx.send(embed=embed)
-
+    
     @disable.command(name="all")
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     async def disable_all(self, ctx):
